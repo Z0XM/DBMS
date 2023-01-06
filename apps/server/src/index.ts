@@ -1,17 +1,83 @@
-import mysql from 'mysql2';
+import express, { Request, Response } from 'express';
+import { RowDataPacket } from 'mysql2';
+import { Likes, Posts, User } from './index.d';
+import queries from './mysql/queries';
+import { executeSQL } from './sql';
+import { ReasonPhrases, StatusCodes } from 'http-status-codes';
+import cors from 'cors';
 
-const pool = mysql
-	.createPool({
-		host: 'localhost',
-		user: 'root',
-		password: 'root',
-		database: 'social'
-	})
-	.promise();
+const app = express();
 
-const test = async () => {
-	const result = await pool.query('SELECT * FROM User;');
-	console.log(result[0]);
-};
+app.use(express.json());
+app.use(cors());
 
-test().then(() => console.log('test successful!'));
+app.listen(4000, () => {
+	console.log('Server is up on port 4000');
+});
+
+app.get('/', (req: Request, res: Response) => {
+	console.log('hi');
+	res.send('hi');
+});
+
+app.post('/login', async (req: Request<unknown, unknown, User>, res: Response) => {
+	const data = req.body;
+
+	if (!data.username || !data.password)
+		return res.send({ login: false, msg: 'Username or Password missing!' });
+
+	const result = (await executeSQL(queries.users.selectOne(data.username))) as RowDataPacket[];
+	if (result[0]) {
+		if (result[0].password == data.password)
+			return res.status(StatusCodes.OK).send({ login: true, msg: 'Login Successful!' });
+		return res.send({ login: false, msg: 'Incorrect Password!' });
+	}
+
+	// if (!data.fullname || !data.gender)
+	// 	return res.send('Missing Profile Information!');
+
+	try {
+		const result = await executeSQL(queries.users.insert(data));
+		console.log(`Logged in User ${data.username}`);
+		return res.status(201).send({ login: true, msg: 'Login Successful!' });
+	} catch (e) {
+		console.error(e);
+		return res.send({ login: false, msg: 'Login Failed!' });
+	}
+});
+
+app.post('/post', async (req: Request<unknown, unknown, Posts>, res: Response) => {
+	const data = req.body;
+	if (!data.username_fk || !data.contents) return res.send('Username or Contents missing!');
+
+	try {
+		await executeSQL(queries.posts.insert(data.username_fk, data.contents));
+		return res.status(201).send('Posted Successfully!');
+	} catch (e) {
+		console.error(e);
+		return res.send('Post Failed!');
+	}
+});
+
+app.get('/post', async (req: Request<unknown, unknown, Posts>, res: Response) => {
+	try {
+		const result = await executeSQL(queries.posts.selectAllwithLikes());
+		return res.status(201).send(result);
+	} catch (e) {
+		console.error(e);
+		return res.send('Post Failed!');
+	}
+});
+
+app.post('/like', async (req: Request<unknown, unknown, Likes>, res: Response) => {
+	const data = req.body;
+	if (!data.post_id_fk || !data.username_fk) return res.send('Username or Post Id missing!');
+
+	try {
+		await executeSQL(queries.likes.insert(data.post_id_fk, data.username_fk));
+		return res.status(201).send('Liked Successfully!');
+	} catch (e) {
+		console.error(e);
+		return res.send('Like Failed!');
+	}
+});

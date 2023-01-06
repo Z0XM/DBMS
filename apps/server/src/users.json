@@ -1,0 +1,26 @@
+[
+    {
+        "username": "imti",
+        "fullname": "imti",
+        "gender": "male",
+        "bio": "dev",
+        "profile_photo_url": null,
+        "password": "1234"
+    },
+    {
+        "username": "z0xm",
+        "fullname": "mukul",
+        "gender": "male",
+        "bio": "dev",
+        "profile_photo_url": null,
+        "password": "1234"
+    },
+    {
+        "username": "imti",
+        "password": "1234"
+    },
+    {
+        "username": "z0xm",
+        "password": "1234"
+    }
+]
