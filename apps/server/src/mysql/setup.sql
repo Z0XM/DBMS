@@ -23,7 +23,8 @@ CREATE TABLE likes(
     post_id_fk integer,
     username_fk varchar(10),
     foreign key(post_id_fk) references posts (post_id),
-    foreign key(username_fk) references users (username) 
+    foreign key(username_fk) references users (username),
+    constraint unique_pair unique (post_id_fk, username_fk)
 );
 
 CREATE TABLE comments (

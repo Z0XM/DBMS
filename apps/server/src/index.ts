@@ -46,6 +46,16 @@ app.post('/login', async (req: Request<unknown, unknown, User>, res: Response) =
 	}
 });
 
+app.get('/post', async (req: Request<unknown, unknown, Posts>, res: Response) => {
+	try {
+		const result = await executeSQL(queries.posts.selectAllwithLikes());
+		return res.status(201).send(result);
+	} catch (e) {
+		console.error(e);
+		return res.send('Post Failed!');
+	}
+});
+
 app.post('/post', async (req: Request<unknown, unknown, Posts>, res: Response) => {
 	const data = req.body;
 	if (!data.username_fk || !data.contents) return res.send('Username or Contents missing!');
@@ -59,18 +69,19 @@ app.post('/post', async (req: Request<unknown, unknown, Posts>, res: Response) =
 	}
 });
 
-app.get('/post', async (req: Request<unknown, unknown, Posts>, res: Response) => {
+app.get('/like/:postid', async (req: Request, res: Response) => {
+	const { postid } = req.params;
 	try {
-		const result = await executeSQL(queries.posts.selectAllwithLikes());
+		const result = await executeSQL(queries.likes.selectAllByPost(parseInt(postid)));
 		return res.status(201).send(result);
 	} catch (e) {
 		console.error(e);
-		return res.send('Post Failed!');
+		return res.send('Something Wen Wrong!');
 	}
 });
 
-app.post('/like', async (req: Request<unknown, unknown, Likes>, res: Response) => {
-	const data = req.body;
+app.post('/like', async (req: Request<unknown, unknown, unknown, Likes>, res: Response) => {
+	const data = req.query;
 	if (!data.post_id_fk || !data.username_fk) return res.send('Username or Post Id missing!');
 
 	try {
@@ -79,5 +90,34 @@ app.post('/like', async (req: Request<unknown, unknown, Likes>, res: Response) =
 	} catch (e) {
 		console.error(e);
 		return res.send('Like Failed!');
+	}
+});
+
+app.delete('/like', async (req: Request<unknown, unknown, unknown, Likes>, res: Response) => {
+	const data = req.query;
+	if (!data.post_id_fk || !data.username_fk) return res.send('Username or Post Id missing!');
+
+	try {
+		await executeSQL(queries.likes.delete(data.post_id_fk, data.username_fk));
+		return res.status(201).send('Liked Removed!');
+	} catch (e) {
+		console.error(e);
+		return res.send('Like Removal Failed!');
+	}
+});
+
+app.get('/existslike', async (req: Request<unknown, unknown, unknown, Likes>, res: Response) => {
+	const data = req.query;
+	if (!data.post_id_fk || !data.username_fk) return res.send('Username or Post Id missing!');
+
+	try {
+		const result = (await executeSQL(
+			queries.likes.existsWithPostAndUSername(data.post_id_fk, data.username_fk)
+		)) as RowDataPacket[];
+		if (!result.length) return res.status(201).send({ exists: false });
+		return res.status(201).send({ exists: true });
+	} catch (e) {
+		console.error(e);
+		return res.send('Something Went Wrong!');
 	}
 });

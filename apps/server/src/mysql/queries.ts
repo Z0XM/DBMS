@@ -44,24 +44,34 @@ const posts = {
         DELETE FROM posts WHERE post_id=${e(post_id)};
     `,
 	selectAllwithLikes: () => `
-        SELECT post_id, username_fk, contents, created_at,count
+        SELECT post_id, username_fk, contents, created_at, count
         FROM posts 
         LEFT JOIN (
             SELECT COUNT(*) as count, post_id_fk 
             FROM likes GROUP BY post_id_fk
         ) T
-        ON posts.post_id=T.post_id_fk;
+        ON posts.post_id=T.post_id_fk
+        ORDER BY posts.created_at DESC;
     `
 };
 
 const likes = {
+	existsWithPostAndUSername: (post_id: number, username: string) => `
+        SELECT username_fk FROM likes
+        WHERE post_id_fk=${e(post_id)} AND username_fk=${e(username)};
+    `,
+	selectAllByPost: (post_id: number) => `
+        SELECT username_fk FROM likes
+        WHERE post_id_fk=${e(post_id)};
+    `,
 	insert: (post_id: number, username: string) => `
         INSERT INTO likes
         (post_id_fk, username_fk)
         VALUES (${e(post_id)}, ${e(username)});
     `,
-	selectUserNamesByPost: (post_id: string) => `
-        SELECT username FROM posts WHERE post_id_fk=${e(post_id)};
+	delete: (post_id: number, username: string) => `
+        DELETE FROM likes
+        WHERE post_id_fk=${e(post_id)} and username_fk=${e(username)}
     `
 };
 

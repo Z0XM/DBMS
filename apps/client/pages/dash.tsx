@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 
 import type { Posts, User } from './index.d';
+import { pseudoRandomBytes } from 'crypto';
 
 const rowdies = Rowdies({ weight: '400' });
 
@@ -31,7 +32,7 @@ export default function Dash({
 			.catch(console.error);
 	};
 
-	const post = () => {
+	const makePost = () => {
 		axios
 			.post('http://localhost:4000/post', {
 				username_fk: userData.username,
@@ -45,6 +46,43 @@ export default function Dash({
 		setTimeout(() => {
 			reloadData();
 		}, 1000);
+	};
+
+	const likePost = (postid: number, username: string) => {
+		axios
+			.post(`http://localhost:4000/like?post_id_fk=${postid}&username_fk=${username}`)
+			.then((res) => {
+				console.log(res.data);
+			})
+			.catch(console.error);
+
+		reloadData();
+	};
+
+	const unlikePost = (postid: number, username: string) => {
+		axios
+			.delete(`http://localhost:4000/like?post_id_fk=${postid}&username_fk=${username}`)
+			.then((res) => {
+				console.log(res.data);
+			})
+			.catch(console.error);
+
+		reloadData();
+	};
+
+	const handleLikeButton = (postid: number, username: string) => {
+		axios
+			.get(`http://localhost:4000/existslike?post_id_fk=${postid}&username_fk=${username}`)
+			.then((res) => {
+				return res.data.exists;
+			})
+			.then((exists) => {
+				if (exists) unlikePost(postid, username);
+				else likePost(postid, username);
+			})
+			.catch(console.error);
+
+		setTimeout(reloadData, 50);
 	};
 
 	useEffect(() => {
@@ -97,7 +135,7 @@ export default function Dash({
 								className={styles.bttn}
 								onClick={(e) => {
 									e.preventDefault();
-									post();
+									makePost();
 								}}>
 								Create
 							</button>
@@ -152,6 +190,9 @@ export default function Dash({
 									</div>
 									<div>{post.contents}</div>
 									<button
+										onClick={() =>
+											handleLikeButton(post.post_id, post.username_fk)
+										}
 										style={{
 											border: 'none',
 											background: 'none',
