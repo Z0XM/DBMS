@@ -40,7 +40,7 @@ const posts = {
 	selectByUser: (username: string) => `
         SELECT * FROM posts WHERE username_fk=${e(username)}
     `,
-	deleteOne: (post_id: string) => `
+	deleteOne: (post_id: number) => `
         DELETE FROM posts WHERE post_id=${e(post_id)};
     `,
 	selectAllwithLikes: () => `
@@ -75,4 +75,17 @@ const likes = {
     `
 };
 
-export default { test, users, posts, likes };
+const chats = {
+	selectChatsBetween: (user1: string, user2: string) => `
+        SELECT * FROM chats
+        WHERE s_username_fk=${e(user1)} AND r_username_fk=${e(user2)}
+        OR s_username_fk=${e(user2)} AND r_username_fk=${e(user1)};
+    `,
+	insert: (s_username: string, r_username: string, contents: string) => `
+        INSERT INTO chats
+        (s_username_fk, r_username_fk, contents)
+        VALUES (${e(s_username)}, ${e(r_username)}, ${e(contents)});
+    `
+};
+
+export default { test, users, posts, likes, chats };

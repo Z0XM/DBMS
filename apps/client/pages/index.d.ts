@@ -20,17 +20,9 @@ export interface Likes {
 	username_fk: string;
 }
 
-export interface Comments {
-	comment_id: number;
-	contents: string;
-	created_at: string;
-	post_id_fk: number;
-	username_fk: string;
-}
-
 export interface Chats {
-	user1_name_fk: string;
-	user2_name_fk: string;
+	s_username_fk: string;
+	r_username_fk: string;
 	created_at: string;
 	contents: string;
 }
