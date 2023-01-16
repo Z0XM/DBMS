@@ -79,7 +79,8 @@ const chats = {
 	selectChatsBetween: (user1: string, user2: string) => `
         SELECT * FROM chats
         WHERE s_username_fk=${e(user1)} AND r_username_fk=${e(user2)}
-        OR s_username_fk=${e(user2)} AND r_username_fk=${e(user1)};
+        OR s_username_fk=${e(user2)} AND r_username_fk=${e(user1)}
+        ORDER BY created_at DESC;
     `,
 	insert: (s_username: string, r_username: string, contents: string) => `
         INSERT INTO chats
