@@ -1,9 +1,5 @@
 export interface User {
 	username: string;
-	fullname?: string;
-	gender?: 'male' | 'female' | 'other';
-	bio?: string;
-	profile_photo_url?: string;
 	password?: string;
 }
 

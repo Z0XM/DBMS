@@ -15,14 +15,10 @@ const users = {
         INSERT INTO users 
         (
 	        username,
-	        fullname,
-	        gender,
 	        password
         )
         VALUES (
             ${e(user.username)},
-            ${e(user.fullname)},
-            ${e(user.gender)},
             ${e(user.password)}
         );
     `
